@@ -90,7 +90,7 @@ class Enemy(Hero):
 # ---------------- ИГРОК ----------------
 player = Player(WIDTH // 2, HEIGHT)
 
-enemy = Enemy(WIDTH // 2, HEIGHT)
+enemy = Enemy(WIDTH // 3, HEIGHT)
 
 # ---------------- ЦИКЛ ИГРЫ ----------------
 while running:
