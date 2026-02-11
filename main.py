@@ -28,15 +28,15 @@ running = True
 # ---------------- КЛАССЫ ----------------
 class Hero:
     def __init__(self, x, y, image_path, speed):
-        self.image = image.load(image_path).convert_alpha()
-        self.image = transform.scale(self.image, (200, 200))
+        self.original_image = image.load(image_path).convert_alpha()
+        self.original_image = transform.scale(self.original_image, (200, 200))
+        self.image = self.original_image
         self.rect = self.image.get_rect(midbottom=(x, y))
         self.speed = speed
         self.hp = 100
 
     def strike(self, enemy):
         pass
-
 
     def draw(self, surface):
         surface.blit(self.image, self.rect)
@@ -55,27 +55,49 @@ class Player(Hero):
         self.jump_power = -18
         self.on_ground = False
 
+        self.facing_right = True  # направление
+
     def strike(self, enemy):
         udar = mouse.get_pressed()
-        super().__init__(player, player, "assets/udar mellstroy.png")
+
         if self.cooldown > 0:
             self.cooldown -= 1
+
         if udar[0] and self.cooldown == 0:
+            self.image = image.load("assets/udar mellstroy.png").convert_alpha()
+            self.image = transform.scale(self.image, (200, 200))
+
+            if not self.facing_right:
+                self.image = transform.flip(self.image, True, False)
+
             if self.rect.colliderect(enemy.rect):
                 enemy.hp -= self.damage
                 print(enemy.hp)
-                self.cooldown = self.delay
 
+            self.cooldown = self.delay
 
+        if self.cooldown == 1:
+            self.image = self.original_image
+            if not self.facing_right:
+                self.image = transform.flip(self.image, True, False)
 
+    # ---------------- ИСПРАВЛЕННЫЙ MOVE ----------------
     def move(self):
         keys = key.get_pressed()
 
         # движение в стороны
         if keys[K_a]:
             self.rect.x -= self.speed
+            self.facing_right = False
+
         if keys[K_d]:
             self.rect.x += self.speed
+            self.facing_right = True
+
+        # обновляем спрайт в зависимости от направления
+        self.image = self.original_image
+        if not self.facing_right:
+            self.image = transform.flip(self.original_image, True, False)
 
         # прыжок
         if keys[K_w] and self.on_ground:
@@ -102,7 +124,6 @@ class Enemy(Hero):
         super().__init__(x, y, "assets/enemy.png", 8)
         self.hp = 100
 
-        # ФИЗИКА
         self.vel_y = 0
         self.gravity = 1
         self.jump_power = -18
@@ -117,7 +138,6 @@ class Enemy(Hero):
 
 # ---------------- ИГРОК ----------------
 player = Player(WIDTH // 2, HEIGHT)
-
 enemy = Enemy(WIDTH // 3, HEIGHT)
 
 # ---------------- ЦИКЛ ИГРЫ ----------------
@@ -127,6 +147,7 @@ while running:
             running = False
 
     screen.blit(background, (0, 0))
+
     if enemy.hp > 0:
         enemy.move()
         enemy.draw(screen)
@@ -134,7 +155,6 @@ while running:
     player.move()
     player.draw(screen)
     player.strike(enemy)
-
 
     display.update()
     clock.tick(FPS)
