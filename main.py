@@ -1,6 +1,8 @@
+from pyautogui import leftClick
 from pygame import *
 
 init()
+mixer.init()
 
 # ---------------- НАСТРОЙКИ ----------------
 WIDTH = 1366
@@ -10,6 +12,11 @@ FPS = 120
 # ---------------- ОКНО ----------------
 screen = display.set_mode((WIDTH, HEIGHT))
 display.set_caption("Jump Physics Demo")
+
+#------------------musica----------------
+#mixer.music.load(...)
+#mixer.music.set_volume(0.25)
+#mixer.music.play(-1)
 
 # ---------------- ФОН ----------------
 background = image.load("assets/background selo.png").convert()
@@ -27,6 +34,10 @@ class Hero:
         self.speed = speed
         self.hp = 100
 
+    def strike(self, enemy):
+        pass
+
+
     def draw(self, surface):
         surface.blit(self.image, self.rect)
 
@@ -34,12 +45,28 @@ class Hero:
 class Player(Hero):
     def __init__(self, x, y):
         super().__init__(x, y, "assets/mellstroi.png", 8)
+        self.damage = 50
+        self.delay = 60
+        self.cooldown = 0
 
         # ФИЗИКА
         self.vel_y = 0
         self.gravity = 1
         self.jump_power = -18
         self.on_ground = False
+
+    def strike(self, enemy):
+        udar = mouse.get_pressed()
+        super().__init__(player, player, "assets/udar mellstroy.png")
+        if self.cooldown > 0:
+            self.cooldown -= 1
+        if udar[0] and self.cooldown == 0:
+            if self.rect.colliderect(enemy.rect):
+                enemy.hp -= self.damage
+                print(enemy.hp)
+                self.cooldown = self.delay
+
+
 
     def move(self):
         keys = key.get_pressed()
@@ -73,6 +100,7 @@ class Player(Hero):
 class Enemy(Hero):
     def __init__(self, x, y):
         super().__init__(x, y, "assets/enemy.png", 8)
+        self.hp = 100
 
         # ФИЗИКА
         self.vel_y = 0
@@ -99,12 +127,14 @@ while running:
             running = False
 
     screen.blit(background, (0, 0))
-
-    enemy.move()
-    enemy.draw(screen)
+    if enemy.hp > 0:
+        enemy.move()
+        enemy.draw(screen)
 
     player.move()
     player.draw(screen)
+    player.strike(enemy)
+
 
     display.update()
     clock.tick(FPS)
