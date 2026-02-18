@@ -42,28 +42,27 @@ class Player(Hero):
         self.delay = 60
         self.cooldown = 0
 
-        # ФИЗИКА
+        # Картинка удара (загружается один раз)
+        self.attack_image = image.load("assets/udar mellstroy.png").convert_alpha()
+        self.attack_image = transform.scale(self.attack_image, (200, 200))
+
+        # Физика
         self.vel_y = 0
         self.gravity = 1
         self.jump_power = -18
         self.on_ground = False
 
         self.facing_right = True
+        self.is_attacking = False
 
     def strike(self, enemy):
-        udar = mouse.get_pressed()
+        mouse_buttons = mouse.get_pressed()
 
         if self.cooldown > 0:
             self.cooldown -= 1
 
-        if udar[0] and self.cooldown == 0:
-            attack_img = image.load("assets/udar mellstroy.png").convert_alpha()
-            attack_img = transform.scale(attack_img, (200, 200))
-
-            if not self.facing_right:
-                attack_img = transform.flip(attack_img, True, False)
-
-            self.image = attack_img
+        if mouse_buttons[0] and self.cooldown == 0:
+            self.is_attacking = True
 
             if self.rect.colliderect(enemy.rect):
                 enemy.hp -= self.damage
@@ -71,10 +70,8 @@ class Player(Hero):
 
             self.cooldown = self.delay
 
-        if self.cooldown == 1:
-            self.image = self.original_image
-            if not self.facing_right:
-                self.image = transform.flip(self.original_image, True, False)
+        if self.cooldown == 0:
+            self.is_attacking = False
 
     def move(self):
         keys = key.get_pressed()
@@ -86,10 +83,6 @@ class Player(Hero):
         if keys[K_d]:
             self.rect.x += self.speed
             self.facing_right = True
-
-        self.image = self.original_image
-        if not self.facing_right:
-            self.image = transform.flip(self.original_image, True, False)
 
         if keys[K_w] and self.on_ground:
             self.vel_y = self.jump_power
@@ -105,6 +98,16 @@ class Player(Hero):
             self.on_ground = True
 
         self.rect.clamp_ip(screen.get_rect())
+
+        if self.is_attacking:
+            current_image = self.attack_image
+        else:
+            current_image = self.original_image
+
+        if not self.facing_right:
+            current_image = transform.flip(current_image, True, False)
+
+        self.image = current_image
 
 
 class Enemy(Hero):
