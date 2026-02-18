@@ -21,6 +21,13 @@ background = transform.scale(background, (WIDTH, HEIGHT))
 clock = time.Clock()
 running = True
 
+# ---------------- МУЗИКА ----------------
+
+mixer.music.load("assets/bg.mp3")
+mixer.music.set_volume(1)
+mixer.music.play(-1)
+
+
 # ---------------- КЛАССЫ ----------------
 class Hero:
     def __init__(self, x, y, image_path, speed):
